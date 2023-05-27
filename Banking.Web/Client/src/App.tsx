@@ -1,12 +1,7 @@
-
-
-function App() {
-
+export const App = () => {
   return (
-    <div className="App">
-        Hello Vite + React!
-        <div>
-  )
-}
-
-export default App
+    <div>
+      <h1>Banking App</h1>
+    </div>
+  );
+};
