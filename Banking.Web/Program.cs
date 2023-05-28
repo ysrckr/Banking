@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,57 +11,52 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseMigrationsEndPoint();
+  app.UseMigrationsEndPoint();
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+  app.UseExceptionHandler("/Home/Error");
+  // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+  app.UseHsts();
 }
 
 app.UseRouting();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapDefaultControllerRoute();
+  endpoints.MapDefaultControllerRoute();
 });
 
-app.UseSpa(spa =>
+if (app.Environment.IsDevelopment())
+{
+  app.UseSpa(spa =>
+  {
+    spa.UseProxyToSpaDevelopmentServer("https://localhost:5173");
+  });
+}
+else
+{
+  app.UseSpaStaticFiles();
+  app.UseSpa(spa =>
+  {
+    spa.Options.SourcePath = "Client/dist";
+
+    // adds no-store header to index page to prevent deployment issues (prevent linking to old .js files)
+    // .js and other static resources are still cached by the browser
+    spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions
     {
-        if (app.Environment.IsDevelopment())
+      OnPrepareResponse = ctx =>
+      {
+        ResponseHeaders headers = ctx.Context.Response.GetTypedHeaders();
+        headers.CacheControl = new CacheControlHeaderValue
         {
-            spa.UseProxyToSpaDevelopmentServer("https://localhost:5173");
-        }
-    });
-
-// if (app.Environment.IsDevelopment())
-// {
-    
-// }
-// else
-// {
-   
-//         app.UseSpaStaticFiles();
-//         app.UseSpa(spa => {
-//             spa.Options.SourcePath = "Client";
-
-//             // adds no-store header to index page to prevent deployment issues (prevent linking to old .js files)
-//             // .js and other static resources are still cached by the browser
-//             spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions
-//             {
-//                 OnPrepareResponse = ctx =>
-//                 {
-//                     ResponseHeaders headers = ctx.Context.Response.GetTypedHeaders();
-//                     headers.CacheControl = new CacheControlHeaderValue
-//                     {
-//                         NoCache = true,
-//                         NoStore = true,
-//                         MustRevalidate = true
-//                     };
-//                 }
-//             };
-//         });
-//     }
+          NoCache = true,
+          NoStore = true,
+          MustRevalidate = true
+        };
+      }
+    };
+  });
+}
 
 app.Run();
