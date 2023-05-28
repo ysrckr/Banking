@@ -1,23 +1,10 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http.Headers;
-using Microsoft.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
-
-builder.Services.AddControllersWithViews();
-
-// ↓ Add the following lines: ↓
-builder.Services.AddSpaStaticFiles(configuration => {
-    configuration.RootPath = "./Client/dist";
-});
+builder.Services.AddControllers();
 
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -31,56 +18,48 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-var spaPath = "/app";
-
-if (app.Environment.IsDevelopment())
+app.UseEndpoints(endpoints =>
 {
-    app.MapWhen(y => y.Request.Path.StartsWithSegments(spaPath), client =>
+    endpoints.MapDefaultControllerRoute();
+});
+
+app.UseSpa(spa =>
     {
-        client.UseSpa(spa =>
+        if (app.Environment.IsDevelopment())
         {
-            spa.UseProxyToSpaDevelopmentServer("https://localhost:6363");
-        });
+            spa.UseProxyToSpaDevelopmentServer("https://localhost:5173");
+        }
     });
-}
-else
-{
-    app.Map(new PathString(spaPath), client =>
-    {
-        client.UseSpaStaticFiles();
-        client.UseSpa(spa => {
-            spa.Options.SourcePath = "./Client";
 
-            // adds no-store header to index page to prevent deployment issues (prevent linking to old .js files)
-            // .js and other static resources are still cached by the browser
-            spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions
-            {
-                OnPrepareResponse = ctx =>
-                {
-                    ResponseHeaders headers = ctx.Context.Response.GetTypedHeaders();
-                    headers.CacheControl = new CacheControlHeaderValue
-                    {
-                        NoCache = true,
-                        NoStore = true,
-                        MustRevalidate = true
-                    };
-                }
-            };
-        });
-    });
-}
-app.MapRazorPages();
+// if (app.Environment.IsDevelopment())
+// {
+    
+// }
+// else
+// {
+   
+//         app.UseSpaStaticFiles();
+//         app.UseSpa(spa => {
+//             spa.Options.SourcePath = "Client";
+
+//             // adds no-store header to index page to prevent deployment issues (prevent linking to old .js files)
+//             // .js and other static resources are still cached by the browser
+//             spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions
+//             {
+//                 OnPrepareResponse = ctx =>
+//                 {
+//                     ResponseHeaders headers = ctx.Context.Response.GetTypedHeaders();
+//                     headers.CacheControl = new CacheControlHeaderValue
+//                     {
+//                         NoCache = true,
+//                         NoStore = true,
+//                         MustRevalidate = true
+//                     };
+//                 }
+//             };
+//         });
+//     }
 
 app.Run();
